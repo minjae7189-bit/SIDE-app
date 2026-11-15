@@ -1,5 +1,8 @@
 package app.side.ui
 
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material.icons.rounded.Navigation
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
@@ -43,9 +46,10 @@ fun HomeScreen(
     onStartTalk: () -> Unit,
     onOpen: (SideTab) -> Unit,
     onStartDeck: (Deck, Int) -> Unit = { _, _ -> },
+    progress: JourneyProgress = JourneyProgress(),
 ) {
     if (LocalPortrait.current) {
-        PortraitHome(ui, onStartTalk, onOpen, onStartDeck)
+        PortraitHome(ui, onStartTalk, onOpen, onStartDeck, progress)
         return
     }
     Column(Modifier.fillMaxSize()) {
@@ -87,17 +91,19 @@ fun HomeScreen(
                 HorizonRoad(Modifier.fillMaxSize())
             }
         }
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(20.dp))
+        JourneyHint(progress)
+        Spacer(Modifier.height(12.dp))
         Row(
             Modifier
                 .fillMaxWidth()
                 .height(112.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            HomeTile(1, if (ui.isRunning) "이어서 대화" else "이야기 시작", onStartTalk, Modifier.weight(1.3f), primary = true)
-            HomeTile(2, "진로 검사", { onOpen(SideTab.TEST) }, Modifier.weight(1f))
-            HomeTile(3, "직업 탐험", { onOpen(SideTab.EXPLORE) }, Modifier.weight(1f))
-            HomeTile(4, "우리의 기록", { onOpen(SideTab.RECORD) }, Modifier.weight(1f))
+            HomeTile(1, if (ui.isRunning) "이어서 대화" else "이야기 나누기", onStartTalk, Modifier.weight(1f), done = progress.talk)
+            HomeTile(2, "진로 검사", { onOpen(SideTab.TEST) }, Modifier.weight(1f), done = progress.test)
+            HomeTile(3, "직업 탐험", { onOpen(SideTab.EXPLORE) }, Modifier.weight(1f), done = progress.explore)
+            HomeTile(4, "함께 가 볼 곳", { onOpen(SideTab.PLACES) }, Modifier.weight(1.4f), primary = true, sub = progress.label)
         }
     }
 }
@@ -109,6 +115,7 @@ private fun PortraitHome(
     onStartTalk: () -> Unit,
     onOpen: (SideTab) -> Unit,
     onStartDeck: (Deck, Int) -> Unit,
+    progress: JourneyProgress,
 ) {
     Column(Modifier.fillMaxSize()) {
         // 그림(380×560 세로형) 비율대로 칸을 잡아 좌우에 빈 테두리가 생기지 않게 한다.
@@ -138,14 +145,17 @@ private fun PortraitHome(
         Spacer(Modifier.height(20.dp))
         StartOptions(onStartDeck)
         Spacer(Modifier.height(20.dp))
+        JourneyHint(progress)
+        Spacer(Modifier.height(10.dp))
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(Modifier.height(96.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                HomeTile(1, if (ui.isRunning) "이어서 대화" else "이야기 시작", onStartTalk, Modifier.weight(1f), primary = true)
-                HomeTile(2, "진로 검사", { onOpen(SideTab.TEST) }, Modifier.weight(1f))
+            Row(Modifier.height(88.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                HomeTile(1, if (ui.isRunning) "이어서 대화" else "이야기 나누기", onStartTalk, Modifier.weight(1f), done = progress.talk)
+                HomeTile(2, "진로 검사", { onOpen(SideTab.TEST) }, Modifier.weight(1f), done = progress.test)
+                HomeTile(3, "직업 탐험", { onOpen(SideTab.EXPLORE) }, Modifier.weight(1f), done = progress.explore)
             }
-            Row(Modifier.height(96.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                HomeTile(3, "직업 탐험", { onOpen(SideTab.EXPLORE) }, Modifier.weight(1f))
-                HomeTile(4, "우리의 기록", { onOpen(SideTab.RECORD) }, Modifier.weight(1f))
+            // 마지막 단계는 한 줄을 다 써서 강조한다.
+            Row(Modifier.height(96.dp)) {
+                HomeTile(4, "함께 가 볼 곳", { onOpen(SideTab.PLACES) }, Modifier.weight(1f), primary = true, sub = progress.label)
             }
         }
     }
@@ -179,8 +189,39 @@ private fun StartOptions(onStartDeck: (Deck, Int) -> Unit) {
     }
 }
 
+/**
+ * 여정 진행 상황: 1~3단계를 했는지. 한 단계만 해도 "함께 가 볼 곳"을 추천하지만,
+ * 단계를 더 할수록 추천 근거가 쌓여 구체적이 된다.
+ */
+data class JourneyProgress(val talk: Boolean = false, val test: Boolean = false, val explore: Boolean = false) {
+    val done: Int get() = listOf(talk, test, explore).count { it }
+    val label: String get() = if (done == 0) "하나만 해도 추천해요" else "추천 근거 $done / 3단계"
+}
+
+/** 타일 위 한 줄 안내: 단계를 더 할수록 가 볼 곳이 구체적이 된다는 것. */
 @Composable
-private fun HomeTile(number: Int, label: String, onClick: () -> Unit, modifier: Modifier = Modifier, primary: Boolean = false) {
+private fun JourneyHint(progress: JourneyProgress) {
+    Text(
+        when (progress.done) {
+            0 -> "어느 단계든 하나만 해도 함께 가 볼 곳을 추천해요. 단계를 더 할수록 추천이 구체적이 돼요."
+            3 -> "세 단계를 모두 했어요. 지금 추천이 가장 우리 가족에게 맞춰져 있어요."
+            else -> "${progress.done}단계를 했어요. 남은 단계를 하면 함께 가 볼 곳이 더 구체적이 돼요."
+        },
+        style = SideType.LabelSmall.copy(fontSize = 16.sp),
+        color = SideColors.TextSoft,
+    )
+}
+
+@Composable
+private fun HomeTile(
+    number: Int,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    primary: Boolean = false,
+    done: Boolean = false,
+    sub: String? = null,
+) {
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxHeight(),
@@ -191,12 +232,23 @@ private fun HomeTile(number: Int, label: String, onClick: () -> Unit, modifier: 
         val ink = if (primary) SideColors.OnSun else SideColors.Text
         Row(Modifier.padding(horizontal = 22.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(twoDigits(number), style = SideType.Number.copy(fontSize = 18.sp), color = if (primary) SideColors.OnSun else SideColors.Blush)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(twoDigits(number), style = SideType.Number.copy(fontSize = 18.sp), color = if (primary) SideColors.OnSun else SideColors.Blush)
+                    if (done) {
+                        Spacer(Modifier.width(8.dp))
+                        Icon(Icons.Rounded.Check, contentDescription = "했어요", tint = SideColors.Sun, modifier = Modifier.size(20.dp))
+                    }
+                    if (primary) {
+                        Spacer(Modifier.width(8.dp))
+                        Text("마지막 단계", style = SideType.LabelSmall.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold), color = SideColors.OnSun)
+                    }
+                }
                 Spacer(Modifier.height(4.dp))
                 Text(label, style = SideType.Label, color = ink, maxLines = 1)
+                if (sub != null) Text(sub, style = SideType.LabelSmall.copy(fontSize = 14.sp), color = ink, maxLines = 1)
             }
             Icon(
-                if (primary) Icons.Rounded.PlayArrow else Icons.AutoMirrored.Rounded.ArrowForward,
+                if (primary) Icons.Rounded.Navigation else Icons.AutoMirrored.Rounded.ArrowForward,
                 contentDescription = null,
                 tint = ink,
                 modifier = Modifier.size(if (primary) 34.dp else 24.dp),

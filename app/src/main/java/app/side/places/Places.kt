@@ -157,9 +157,11 @@ object Recommender {
     }
 
     /** 음성 안내용 한 문장(주행 중에도 읽는다). */
-    fun voiceLine(r: Recommendation): String {
+    /** [knownLocation]이 false면(차량·기기 위치를 못 받아 기본 위치 기준) 거리는 말하지 않는다. */
+    fun voiceLine(r: Recommendation, knownLocation: Boolean = true): String {
         val km = if (r.distanceKm < 1) "1킬로미터 안" else "${"%.0f".format(r.distanceKm)}킬로미터쯤"
-        return "오늘 이야기와 어울리는 곳으로 ${r.place.kind} ${r.place.name}${iGa(r.place.name)} 있어요. 여기서 $km 떨어져 있어요. " +
+        val distance = if (knownLocation) "여기서 $km 떨어져 있어요. " else ""
+        return "오늘 이야기와 어울리는 곳으로 ${r.place.kind} ${r.place.name}${iGa(r.place.name)} 있어요. $distance" +
             "차를 세우면 화면에서 추천하는 이유와 길 안내를 볼 수 있어요."
     }
 

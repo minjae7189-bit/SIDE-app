@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,17 +48,24 @@ import app.side.talk.TalkUiState
 import app.side.vehicle.DriveState
 
 /** 정차 중에 오갈 수 있는 화면. [inSidebar]가 false면 홈의 버튼으로만 들어간다. */
-enum class SideTab(val label: String, val inSidebar: Boolean = true) {
+enum class SideTab(val label: String, val inSidebar: Boolean = true, val step: Int? = null) {
     HOME("홈"),
-    TALK("이야기 나누기"),
-    EXPLORE("직업 탐험"),
-    TEST("진로 검사"),
-    PLACES("가 볼 곳"),
+
+    // 여정 네 단계: 이야기 → 진로 검사 → 직업 탐험 → 함께 가 볼 곳(마지막, 강조).
+    // 한 단계만 해도 가 볼 곳을 추천하지만, 단계를 더 할수록 추천 근거가 쌓여 구체적이 된다.
+    TALK("이야기 나누기", step = 1),
+    TEST("진로 검사", step = 2),
+    EXPLORE("직업 탐험", step = 3),
+    PLACES("함께 가 볼 곳", step = 4),
+
+    // 단계가 아닌 메뉴(번호 없음)
     RECORD("성장 기록"),
-    SETTINGS("설정"),
     MISSION("진로 미션", inSidebar = false),
     FAMILY("가족 MBTI", inSidebar = false),
 }
+
+/** 여정의 마지막 단계(강조해서 보여 준다). */
+val SideTab.isFinalStep: Boolean get() = this == SideTab.PLACES
 
 class TalkActions(
     val play: () -> Unit,
@@ -66,6 +74,8 @@ class TalkActions(
     val next: () -> Unit,
     val previous: () -> Unit,
     val simulateGear: (DriveState?) -> Unit,
+    /** 가족 MBTI 글자를 바꾼다(null이면 그대로). 음성으로 채운 글자와 같은 상태를 쓴다. */
+    val setFamilyMbti: (String?, String?) -> Unit = { _, _ -> },
     /** 카드 묶음을 고르고 그 묶음의 n번째 카드부터 시작한다. */
     val startDeck: (Deck, Int) -> Unit = { _, _ -> },
 )
@@ -111,7 +121,7 @@ fun SideApp(
                     onRequestLocation = onRequestLocation,
                 )
             } else {
-                DrivingScreen(ui, driveState, actions)
+                DrivingScreen(ui, driveState, actions, assessment, onStopAssessment = assessmentActions.stopVoice)
             }
             if (showDebugGear && (gearUnavailable || simulatedGear != null)) {
                 DebugGearBar(
@@ -139,6 +149,10 @@ private fun ParkedShell(
     onRequestLocation: () -> Unit,
 ) {
     val goHome = { onTab(SideTab.HOME) }
+    // 진로 검사 화면을 떠나면 음성 검사도 멈춘다(다른 화면에는 진행 표시와 멈추기 버튼이 없다).
+    LaunchedEffect(tab) {
+        if (tab != SideTab.TEST) assessmentActions.stopVoice()
+    }
     val body: @Composable () -> Unit = {
         when (tab) {
             SideTab.HOME -> HomeScreen(
@@ -152,6 +166,11 @@ private fun ParkedShell(
                     actions.startDeck(deck, index)
                     onTab(SideTab.TALK)
                 },
+                progress = JourneyProgress(
+                    talk = ui.finishedCards.isNotEmpty(),
+                    test = assessment.result != null,
+                    explore = places.explored.isNotEmpty(),
+                ),
             )
             SideTab.TALK -> TalkScreen(
                 ui,
@@ -162,15 +181,21 @@ private fun ParkedShell(
             )
             SideTab.PLACES -> PlacesScreen(
                 places = places,
-                profile = buildProfile(ui, assessment, places.chosen),
+                profile = buildProfile(ui, assessment, places.chosen, places.explored),
                 actions = placesActions,
                 onRequestPermission = onRequestLocation,
                 onBack = goHome,
             )
-            SideTab.FAMILY -> FamilyMbtiScreen(onBack = { onTab(SideTab.TALK) })
-            SideTab.EXPLORE -> ExploreScreen(onBack = goHome)
+            SideTab.FAMILY -> FamilyMbtiScreen(
+                onBack = { onTab(SideTab.TALK) },
+                parent = ui.familyParent,
+                child = ui.familyChild,
+                onChange = actions.setFamilyMbti,
+            )
+            SideTab.EXPLORE -> ExploreScreen(onBack = goHome, places = places, onNavigate = placesActions.openMap, onExplored = placesActions.markExplored)
             SideTab.TEST -> AssessmentScreen(assessment, assessmentActions, onBack = goHome)
-            SideTab.RECORD, SideTab.SETTINGS, SideTab.MISSION -> ComingSoonScreen(tab, onBack = goHome)
+            SideTab.RECORD -> RecordScreen(onBack = goHome)
+            SideTab.MISSION -> ComingSoonScreen(tab, onBack = goHome)
         }
     }
     // 세로 패널은 왼쪽 메뉴 대신 위쪽에 이름과 가로 탭을 둔다. 메뉴만 바꾸고 본문(body)은 두 배치에서
@@ -239,9 +264,13 @@ private fun TopTabs(current: SideTab, onSelect: (SideTab) -> Unit) {
                 ) {
                     Column(Modifier.padding(horizontal = 14.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            item.label,
-                            style = SideType.Label.copy(fontSize = 19.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium),
-                            color = if (selected) SideColors.Text else SideColors.TextSoft,
+                            (item.step?.let { "$it " } ?: "") + item.label,
+                            style = SideType.Label.copy(fontSize = 19.sp, fontWeight = if (selected || item.isFinalStep) FontWeight.Bold else FontWeight.Medium),
+                            color = when {
+                                selected -> SideColors.Text
+                                item.isFinalStep -> SideColors.Sun
+                                else -> SideColors.TextSoft
+                            },
                         )
                         Spacer(Modifier.height(6.dp))
                         Box(
@@ -271,8 +300,19 @@ private fun Sidebar(current: SideTab, onSelect: (SideTab) -> Unit, modifier: Mod
         Spacer(Modifier.height(10.dp))
         Text("나란히, 더 멀리", style = SideType.LabelSmall.copy(fontSize = 15.sp, lineHeight = 21.sp), color = SideColors.TextFaint)
         Spacer(Modifier.height(44.dp))
-        SideTab.entries.filter { it.inSidebar }.forEachIndexed { i, item ->
+        SideTab.entries.filter { it.inSidebar }.forEach { item ->
             val selected = item == current
+            // 단계가 아닌 메뉴(성장 기록) 앞에 구분선
+            if (item == SideTab.RECORD) {
+                Spacer(Modifier.height(10.dp))
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(SideColors.Line),
+                )
+                Spacer(Modifier.height(10.dp))
+            }
             Surface(
                 onClick = { onSelect(item) },
                 modifier = Modifier
@@ -289,16 +329,22 @@ private fun Sidebar(current: SideTab, onSelect: (SideTab) -> Unit, modifier: Mod
                             .background(if (selected) SideColors.Sun else Color.Transparent, RoundedCornerShape(2.dp)),
                     )
                     Spacer(Modifier.width(14.dp))
+                    // 단계 번호(01~04). 홈·성장 기록은 번호 없이 같은 자리를 비운다.
                     Text(
-                        twoDigits(i + 1),
+                        item.step?.let { twoDigits(it) } ?: "",
                         style = SideType.Number.copy(fontSize = 17.sp),
-                        color = if (selected) SideColors.Sun else SideColors.TextFaint,
+                        color = if (selected || item.isFinalStep) SideColors.Sun else SideColors.TextFaint,
+                        modifier = Modifier.width(24.dp),
                     )
                     Spacer(Modifier.width(12.dp))
                     Text(
                         item.label,
-                        style = SideType.Label.copy(fontSize = 20.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium),
-                        color = if (selected) SideColors.Text else SideColors.TextSoft,
+                        style = SideType.Label.copy(fontSize = 20.sp, fontWeight = if (selected || item.isFinalStep) FontWeight.Bold else FontWeight.Medium),
+                        color = when {
+                            selected -> SideColors.Text
+                            item.isFinalStep -> SideColors.Sun
+                            else -> SideColors.TextSoft
+                        },
                     )
                 }
             }

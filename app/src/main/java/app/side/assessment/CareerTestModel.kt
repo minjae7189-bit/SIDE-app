@@ -5,7 +5,11 @@ package app.side.assessment
  * 이 저장소의 문항(app/src/main/assets/career_test_demo.json)은 데모용 예시이며, 실제 서비스에서는 검증된 진로검사 문항으로 바꾼다.
  * 이 파일은 안드로이드에 의존하지 않아 JVM 단위 테스트에서 그대로 쓸 수 있다.
  */
-enum class Level { MIDDLE, HIGH }
+/**
+ * 학교급. 화면에 이 순서로 보인다. 초등 저학년(1~3학년)·고학년(4~6학년) 문항은 같은 하위요인을 아이 눈높이로 쓴 것이다.
+ * 채점 규칙은 모두 같다.
+ */
+enum class Level { ELEMENTARY_LOW, ELEMENTARY_HIGH, MIDDLE, HIGH }
 
 enum class Domain(val label: String) {
     INTEREST("흥미"),
@@ -53,9 +57,17 @@ data class CareerTestContent(
     val introNotes: List<TextBlock> = emptyList(),
     val levelLabels: Map<Level, String> = emptyMap(),
     val grades: Map<Level, List<String>> = emptyMap(),
+    /** 학교급 안내(초등용 문항이 새로 쓴 것임을 알린다). 없으면 빈 문자열. */
+    val levelNotes: Map<Level, String> = emptyMap(),
     val genders: List<String> = emptyList(),
     val regions: List<String> = emptyList(),
+    /** 잘하는 과목 보기(중·고 공통). 학교급마다 따로 있으면 [levelSubjects]를 쓴다. */
     val subjects: List<String> = emptyList(),
+    val levelSubjects: Map<Level, List<String>> = emptyMap(),
+    /** 학교급별 적성·가치관 응답 6단계(없으면 [AGREE_LABELS]). */
+    val agreeLabels: Map<Level, List<String>> = emptyMap(),
+    /** 흥미 응답 가운데 단계에 붙이는 말(기본 "약간", 초등 "조금"). */
+    val mildWords: Map<Level, String> = emptyMap(),
     val factors: Map<Domain, List<Factor>>,
     val attributes: Map<Domain, Map<String, Attribute>> = emptyMap(),
     val types: Map<String, CareerType> = emptyMap(),
@@ -81,13 +93,17 @@ data class CareerTestContent(
 
     fun text(q: QuestionRef, level: Level): String = factor(q).questions[level]?.getOrNull(q.itemIndex).orEmpty()
 
-    /** 응답 6단계 문구. 흥미는 문항마다 다르고(①·⑥ 문구로 만든다), 적성·가치관은 같다. */
+    fun subjectsFor(level: Level?): List<String> = level?.let { levelSubjects[it] } ?: subjects
+
+    /** 응답 6단계 문구. 흥미는 문항마다 다르고(①·⑥ 문구로 만든다), 적성·가치관은 학교급마다 같다. */
     fun options(q: QuestionRef, level: Level): List<String> {
-        if (q.domain != Domain.INTEREST) return AGREE_LABELS
-        val (low, high) = factor(q).scale[level] ?: return AGREE_LABELS
+        val agree = agreeLabels[level] ?: AGREE_LABELS
+        if (q.domain != Domain.INTEREST) return agree
+        val (low, high) = factor(q).scale[level] ?: return agree
+        val mild = mildWords[level] ?: "약간"
         val lowCore = low.removePrefix("전혀").trim()
-        val highCore = high.removePrefix("매우").trim()
-        return listOf(low, lowCore, "약간 $lowCore", "약간 $highCore", highCore, high)
+        val highCore = high.removePrefix("매우").removePrefix("아주").trim()
+        return listOf(low, lowCore, "$mild $lowCore", "$mild $highCore", highCore, high)
     }
 
     companion object {

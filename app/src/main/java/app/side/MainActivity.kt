@@ -39,15 +39,15 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-        placesViewModel.onPermissionResult(result.values.any { it })
-    }
 
     override fun onStop() {
         super.onStop()
         // 다른 앱이 이 화면을 가려 액티비티가 멈추면(onStop) 음성 토크를 멈춘다. 구성 변경으로 인한 재생성은 제외.
         // Pleos 멀티윈도우에서는 HOME/BACK 키만으로는 onStop이 오지 않아 계속 재생된다(에뮬레이터 실측).
-        if (!isChangingConfigurations) viewModel.pauseIfActive()
+        if (!isChangingConfigurations) {
+            viewModel.pauseIfActive()
+            assessmentViewModel.stopVoice()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,25 +68,30 @@ class MainActivity : ComponentActivity() {
             previous = viewModel::previous,
             simulateGear = viewModel::simulateGear,
             startDeck = viewModel::startDeck,
+            setFamilyMbti = { p, c -> viewModel.setFamilyMbti(p, c) },
         )
         val placesActions = PlacesActions(
             toggleTheme = placesViewModel::toggleTheme,
             refreshLocation = placesViewModel::refreshLocation,
             onPermissionResult = placesViewModel::onPermissionResult,
             openMap = ::navigateTo,
+            markExplored = placesViewModel::markExplored,
         )
+        // 진로 검사도 이야기 화면의 음성 엔진을 같이 쓴다. 한쪽을 시작하면 다른 쪽은 멈춘다(마이크가 하나).
+        assessmentViewModel.voice = viewModel.voice
+        assessmentViewModel.isDriving = { !viewModel.driveState.value.allowsCardUi }
+        viewModel.onTalkStart = { assessmentViewModel.stopVoice() }
         // 이야기를 다 마치면 가장 잘 맞는 가까운 장소 한 곳을 음성으로 권한다(주행 중에도 소리로만 안내).
         viewModel.closingSuggestion = {
             val places = placesViewModel.ui.value
-            val profile = buildProfile(viewModel.ui.value, assessmentViewModel.ui.value, places.chosen)
+            val profile = buildProfile(viewModel.ui.value, assessmentViewModel.ui.value, places.chosen, places.explored)
             if (places.places.isEmpty() || profile.isEmpty) {
                 null
             } else {
                 Recommender.recommend(places.places, places.here, profile, count = 1, today = java.time.LocalDate.now().dayOfWeek)
-                    .firstOrNull()?.let(Recommender::voiceLine)
+                    .firstOrNull()?.let { Recommender.voiceLine(it, knownLocation = places.locationSource != app.side.places.LocationSource.DEFAULT) }
             }
         }
-        if (!placesViewModel.ui.value.permissionGranted) requestLocation()
 
         setContent {
             SideTheme {
@@ -107,15 +112,11 @@ class MainActivity : ComponentActivity() {
                     assessmentActions = assessmentViewModel.actions,
                     places = places,
                     placesActions = placesActions,
-                    onRequestLocation = ::requestLocation,
                 )
             }
         }
     }
 
-    private fun requestLocation() {
-        locationPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
-    }
 
     /**
      * 장소로 길 안내: 차량 내비(NaviHelper)에 연결돼 있으면 목적지·경유지로 넣고(주행 중이면 넣지 않음),

@@ -62,6 +62,8 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(libs.junit)
+    // 단위 테스트에서 assets/career_test_demo.json을 실제로 읽어 보려고(안드로이드 org.json은 JVM 테스트에서 동작하지 않는다).
+    testImplementation("org.json:json:20231013")
 
     implementation(libs.pleos.vehicle)
     implementation(libs.pleos.tts)

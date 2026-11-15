@@ -12,7 +12,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.side.explore.Job
 import app.side.navi.NaviRouter
+import app.side.record.RecordEntry
+import app.side.record.RecordKind
+import app.side.record.RecordStore
+import java.time.LocalDateTime
 import app.side.navi.NaviSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +46,8 @@ data class PlacesUi(
     val naviMessage: String? = null,
     /** 차량 내비게이션(NaviHelper)에 연결됐는지. 아니면 "길 안내"는 지도 앱을 연다. */
     val naviReady: Boolean = false,
+    /** 직업 탐험에서 살펴본 직업(가 볼 곳 추천 근거). 앱을 다시 켜면 비워진다. */
+    val explored: List<Job> = emptyList(),
 )
 
 /** 위치를 받지 못할 때 쓰는 기본 위치(서울시청). 화면에 그 사실을 알린다. */
@@ -52,6 +59,8 @@ class PlacesActions(
     val refreshLocation: () -> Unit,
     val onPermissionResult: (Boolean) -> Unit,
     val openMap: (Place) -> Unit,
+    /** 직업 탐험에서 직업을 살펴봄(추천 근거). */
+    val markExplored: (Job) -> Unit = {},
 ) {
     companion object {
         val None = PlacesActions({}, {}, {}, {})
@@ -109,6 +118,11 @@ class PlacesViewModel(app: Application) : AndroidViewModel(app) {
         refreshLocation()
     }
 
+    /** 직업 탐험에서 직업 하나를 살펴봤다(가 볼 곳 추천 근거가 된다). */
+    fun markExplored(job: Job) {
+        _ui.update { if (job in it.explored) it else it.copy(explored = it.explored + job) }
+    }
+
     fun toggleTheme(theme: Theme) {
         _ui.update { s -> s.copy(chosen = if (theme in s.chosen) s.chosen - theme else s.chosen + theme) }
         prefs.edit().putStringSet(KEY_CHOSEN, _ui.value.chosen.map { it.name }.toSet()).apply()
@@ -154,7 +168,18 @@ class PlacesViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun addToNavi(place: Place, driving: () -> Boolean) {
         viewModelScope.launch {
-            showNaviMessage(router.add(place.name, GeoPoint(place.lat, place.lng), address = "", driving = driving))
+            val result = router.add(place.name, GeoPoint(place.lat, place.lng), address = "", driving = driving)
+            showNaviMessage(result.message)
+            if (result.sent) {
+                // 성장 기록: 내비에 넣은 장소를 남긴다. SDK는 요청별 결과를 주지 않으므로 오류가 올 시간만큼 기다려
+                // 그동안 오류가 없을 때만 남긴다(넣지 못한 곳이 기록되거나, 다시 시도해 두 번 기록되지 않게).
+                val errors = navi.state.value.errorCount
+                kotlinx.coroutines.delay(NAVI_ERROR_WINDOW_MS)
+                if (navi.state.value.errorCount != errors) return@launch
+                RecordStore.get(getApplication()).add(
+                    RecordEntry(at = LocalDateTime.now(), kind = RecordKind.PLACE, title = place.name, detail = place.kind, tag = "함께 가 볼 곳"),
+                )
+            }
         }
     }
 

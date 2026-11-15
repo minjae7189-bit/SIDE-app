@@ -19,10 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,9 +31,12 @@ import app.side.talk.FamilyMbti
  * "조심하세요 / 이렇게 해 보세요" 대화 팁을 보여 준다.
  */
 @Composable
-fun FamilyMbtiScreen(onBack: () -> Unit) {
-    var parent by rememberSaveable { mutableStateOf(FamilyMbti.EMPTY) }
-    var child by rememberSaveable { mutableStateOf(FamilyMbti.EMPTY) }
+fun FamilyMbtiScreen(
+    onBack: () -> Unit,
+    parent: String = FamilyMbti.EMPTY,
+    child: String = FamilyMbti.EMPTY,
+    onChange: (parent: String?, child: String?) -> Unit = { _, _ -> },
+) {
     Column(Modifier.fillMaxSize()) {
         ScreenHeader("가족 MBTI", onBack)
         Spacer(Modifier.height(12.dp))
@@ -51,8 +50,8 @@ fun FamilyMbtiScreen(onBack: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    Box(Modifier.weight(1f)) { MbtiPicker("어른", parent) { parent = it } }
-                    Box(Modifier.weight(1f)) { MbtiPicker("아이", child) { child = it } }
+                    Box(Modifier.weight(1f)) { MbtiPicker("어른", parent) { onChange(it, null) } }
+                    Box(Modifier.weight(1f)) { MbtiPicker("아이", child) { onChange(null, it) } }
                 }
                 Spacer(Modifier.height(12.dp))
                 Text("이럴 땐 이렇게", style = SideType.Eyebrow, color = SideColors.Blush)
@@ -71,8 +70,8 @@ fun FamilyMbtiScreen(onBack: () -> Unit) {
                     .fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
             ) {
-                MbtiPicker("어른", parent) { parent = it }
-                MbtiPicker("아이", child) { child = it }
+                MbtiPicker("어른", parent) { onChange(it, null) }
+                MbtiPicker("아이", child) { onChange(null, it) }
             }
             Column(
                 Modifier

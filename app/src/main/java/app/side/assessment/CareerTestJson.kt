@@ -20,9 +20,13 @@ object CareerTestJson {
             introNotes = intro.getJSONArray("notes").objects().map { TextBlock(it.getString("title"), it.getString("body")) },
             levelLabels = Level.entries.associateWith { levels.getJSONObject(it.key).getString("label") },
             grades = Level.entries.associateWith { levels.getJSONObject(it.key).getJSONArray("grades").strings() },
+            levelNotes = Level.entries.mapNotNull { l -> levels.getJSONObject(l.key).optString("note").takeIf { it.isNotEmpty() }?.let { l to it } }.toMap(),
             genders = o.getJSONArray("genders").strings(),
             regions = o.getJSONArray("regions").strings(),
             subjects = o.getJSONArray("subjects").strings(),
+            levelSubjects = Level.entries.mapNotNull { l -> levels.getJSONObject(l.key).optJSONArray("subjects")?.let { l to it.strings() } }.toMap(),
+            agreeLabels = Level.entries.mapNotNull { l -> levels.getJSONObject(l.key).optJSONArray("agree")?.let { l to it.strings() } }.toMap(),
+            mildWords = Level.entries.mapNotNull { l -> levels.getJSONObject(l.key).optString("mild").takeIf { it.isNotEmpty() }?.let { l to it } }.toMap(),
             factors = Domain.entries.associateWith { d -> o.getJSONArray(d.key).objects().map { factor(it) } },
             attributes = Domain.entries.associateWith { d ->
                 val a = o.getJSONObject("attributes").getJSONObject(d.key)

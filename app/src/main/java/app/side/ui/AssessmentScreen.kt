@@ -1,5 +1,6 @@
 package app.side.ui
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -24,6 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.MicOff
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -117,7 +120,7 @@ private fun IntroStage(content: CareerTestContent, ui: AssessmentUi, actions: As
                     Spacer(Modifier.height(28.dp))
                 }
                 Text(
-                    "검사는 차가 서 있을 때만 할 수 있어요. 출발하면 잠시 멈추고, 다시 서면 이어서 할 수 있어요.",
+                    "화면으로 하는 검사는 차가 서 있을 때만 할 수 있어요. 음성으로 답하면 출발해도 이어서 할 수 있어요.",
                     style = SideType.LabelSmall.copy(fontSize = 15.sp, lineHeight = 22.sp),
                     color = SideColors.TextFaint,
                 )
@@ -132,6 +135,9 @@ private fun IntroStage(content: CareerTestContent, ui: AssessmentUi, actions: As
                 }
                 ui.inProgress -> {
                     SunButton("이어서 하기", actions.start, Modifier.size(width = 260.dp, height = 88.dp), icon = Icons.AutoMirrored.Rounded.ArrowForward)
+                    if (ui.profile.complete) {
+                        LineButton("음성으로 이어서", actions.toggleVoice, Modifier.size(width = 220.dp, height = 88.dp), icon = Icons.Rounded.Mic)
+                    }
                     LineButton("처음부터", actions.restart, Modifier.size(width = 170.dp, height = 88.dp), icon = Icons.Rounded.Refresh)
                     Text("${ui.answers.size} / ${ui.total} 문항 답함", style = SideType.LabelSmall, color = SideColors.TextFaint)
                 }
@@ -170,8 +176,14 @@ private fun ProfileStage(content: CareerTestContent, ui: AssessmentUi, actions: 
             if (ui.profilePage == 0) {
                 Section("학교") {
                     Level.entries.forEach { l ->
-                        Choice(content.levelLabels[l].orEmpty(), p.level == l) { set(p.copy(level = l, grade = -1)) }
+                        // 학교급이 바뀌면 학년·과목 보기가 달라지므로 다시 고르게 한다.
+                        Choice(content.levelLabels[l].orEmpty(), p.level == l) {
+                            if (p.level != l) set(p.copy(level = l, grade = -1, subjects = emptyList()))
+                        }
                     }
+                }
+                p.level?.let { content.levelNotes[it] }?.let { note ->
+                    Text(note, style = SideType.LabelSmall.copy(fontSize = 16.sp), color = SideColors.TextSoft)
                 }
                 p.level?.let { level ->
                     Section("학년") {
@@ -188,7 +200,7 @@ private fun ProfileStage(content: CareerTestContent, ui: AssessmentUi, actions: 
                 Text("내가 잘한다고 생각하는 과목을 순서대로 세 개 골라 주세요", style = SideType.Question.copy(fontSize = 32.sp), color = SideColors.Text)
                 Text("고른 순서가 1, 2, 3순위가 돼요. 다시 누르면 빠져요.", style = SideType.Body, color = SideColors.TextSoft)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    content.subjects.forEachIndexed { i, s ->
+                    content.subjectsFor(p.level).forEachIndexed { i, s ->
                         val rank = p.subjects.indexOf(i)
                         Choice(if (rank >= 0) "${rank + 1}  $s" else s, rank >= 0) {
                             val next = when {
@@ -287,18 +299,38 @@ private fun QuestionStage(content: CareerTestContent, ui: AssessmentUi, actions:
             Spacer(Modifier.height(16.dp))
             Text(content.text(q, level), style = SideType.Question.copy(fontSize = 36.sp, lineHeight = 48.sp), color = SideColors.Text)
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            content.options(q, level).forEachIndexed { i, label ->
-                AnswerButton(i + 1, label, selected = chosen == i + 1, modifier = Modifier.weight(1f)) { actions.answer(i + 1) }
+        // 세로 분할 화면에서는 3개씩 두 줄로 놓는다(초등용 응답 문구가 길어 한 줄 6칸에서는 잘린다).
+        val options = content.options(q, level)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            options.withIndex().chunked(if (LocalPortrait.current) 3 else 6).forEach { row ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    row.forEach { (i, label) ->
+                        AnswerButton(i + 1, label, selected = chosen == i + 1, modifier = Modifier.weight(1f)) { actions.answer(i + 1) }
+                    }
+                }
             }
         }
         Spacer(Modifier.height(14.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            LineButton("이전 문항", actions.previous, Modifier.size(width = 170.dp, height = 64.dp), icon = Icons.AutoMirrored.Rounded.ArrowBack)
+            LineButton("이전 문항", actions.previous, Modifier.size(width = 150.dp, height = 64.dp), icon = Icons.AutoMirrored.Rounded.ArrowBack)
             Spacer(Modifier.width(12.dp))
-            LineButton("나중에 이어서", actions.exit, Modifier.size(width = 190.dp, height = 64.dp))
+            LineButton("나중에 이어서", actions.exit, Modifier.size(width = 170.dp, height = 64.dp))
+            Spacer(Modifier.width(12.dp))
+            // 음성 검사: 문항을 읽어 주고 대답을 들어 답한다(화면을 보지 않고도 할 수 있게).
+            if (ui.voiceOn) {
+                LineButton("음성 끄기", actions.toggleVoice, Modifier.size(width = 150.dp, height = 64.dp), icon = Icons.Rounded.MicOff)
+            } else {
+                SunButton("음성으로 답하기", actions.toggleVoice, Modifier.size(width = 236.dp, height = 64.dp), icon = Icons.Rounded.Mic, style = SideType.Button.copy(fontSize = 19.sp))
+            }
             Spacer(Modifier.weight(1f))
-            Text("고르면 바로 다음 문항으로 넘어가요", style = SideType.LabelSmall.copy(fontSize = 15.sp), color = SideColors.TextFaint)
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    ui.voiceStatus.ifBlank { if (ui.voiceOn) "음성으로 진행 중" else "고르면 바로 다음 문항으로 넘어가요" },
+                    style = SideType.LabelSmall.copy(fontSize = 15.sp),
+                    color = if (ui.voiceOn) SideColors.Sun else SideColors.TextFaint,
+                )
+                if (ui.heard.isNotBlank()) Text("“${ui.heard}”", style = SideType.Label.copy(fontSize = 17.sp), color = SideColors.Sun, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
 }
@@ -307,7 +339,7 @@ private fun QuestionStage(content: CareerTestContent, ui: AssessmentUi, actions:
 private fun AnswerButton(value: Int, label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        modifier = modifier.height(132.dp),
+        modifier = modifier.height(140.dp),
         shape = RoundedCornerShape(20.dp),
         color = if (selected) SideColors.Sun else SideColors.Panel,
         border = if (selected) null else BorderStroke(1.dp, SideColors.LineStrong),
@@ -323,7 +355,8 @@ private fun AnswerButton(value: Int, label: String, selected: Boolean, modifier:
                 style = SideType.LabelSmall.copy(fontSize = 15.sp, lineHeight = 19.sp),
                 color = if (selected) SideColors.OnSun else SideColors.TextSoft,
                 textAlign = TextAlign.Center,
-                maxLines = 2,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -423,7 +456,7 @@ private fun profileLine(content: CareerTestContent, ui: AssessmentUi): String {
         content.grades[level]?.getOrNull(p.grade),
         content.regions.getOrNull(p.region),
         ui.finishedAt?.let { "검사일 $it" },
-        p.subjects.takeIf { it.isNotEmpty() }?.let { s -> "잘하는 과목 " + s.mapIndexed { i, x -> "${i + 1} ${content.subjects[x]}" }.joinToString("  ") },
+        p.subjects.takeIf { it.isNotEmpty() }?.let { s -> "잘하는 과목 " + s.mapIndexed { i, x -> "${i + 1} ${content.subjectsFor(p.level).getOrElse(x) { "" }}" }.joinToString("  ") },
     )
     return parts.joinToString("  ·  ")
 }
@@ -467,7 +500,7 @@ private fun DomainSection(content: CareerTestContent, ui: AssessmentUi, result: 
         }
         if (d == Domain.APTITUDE && ui.profile.subjects.isNotEmpty()) {
             Text(
-                "내가 잘한다고 생각하는 과목  " + ui.profile.subjects.mapIndexed { i, x -> "${i + 1} ${content.subjects[x]}" }.joinToString("   "),
+                "내가 잘한다고 생각하는 과목  " + ui.profile.subjects.mapIndexed { i, x -> "${i + 1} ${content.subjectsFor(ui.profile.level).getOrElse(x) { "" }}" }.joinToString("   "),
                 style = SideType.Label.copy(fontSize = 18.sp),
                 color = SideColors.Text,
             )

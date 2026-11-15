@@ -66,7 +66,7 @@ fun TalkScreen(
             Spacer(Modifier.weight(1f))
             // 이야기를 다 마치면 가 볼 만한 곳을 먼저 권한다.
             if (ui.phase == TalkPhase.FINISHED || ui.finishedCards.isNotEmpty()) {
-                SunButton("가 볼 만한 곳", onOpenPlaces, Modifier.height(48.dp), style = SideType.Button.copy(fontSize = 18.sp))
+                SunButton("함께 가 볼 곳", onOpenPlaces, Modifier.height(48.dp), style = SideType.Button.copy(fontSize = 18.sp))
             }
             if (ui.deck == Deck.MBTI) {
                 Spacer(Modifier.width(10.dp))
@@ -145,7 +145,7 @@ private fun PortraitTalk(ui: TalkUiState, actions: TalkActions, onBack: () -> Un
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (ui.phase == TalkPhase.FINISHED || ui.finishedCards.isNotEmpty()) {
-                    SunButton("가 볼 만한 곳", onOpenPlaces, Modifier.height(48.dp), style = SideType.Button.copy(fontSize = 18.sp))
+                    SunButton("함께 가 볼 곳", onOpenPlaces, Modifier.height(48.dp), style = SideType.Button.copy(fontSize = 18.sp))
                 }
                 if (ui.deck == Deck.MBTI) LineButton("가족 MBTI 넣고 팁 보기", onOpenFamily, Modifier.height(48.dp))
             }
@@ -254,9 +254,9 @@ private fun BalanceBody(ui: TalkUiState) {
     Text(card.question, style = SideType.Question.copy(fontSize = 34.sp), color = SideColors.Text)
     Spacer(Modifier.height(18.dp))
     Row(Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
-        BalanceChoice("A", card.choices[0], Modifier.weight(1f))
+        BalanceChoice("A", card.choices[0], Modifier.weight(1f), selected = ui.chosen == 0)
         Text("VS", style = SideType.Title.copy(fontSize = 28.sp), color = SideColors.Sun, modifier = Modifier.padding(horizontal = 18.dp))
-        BalanceChoice("B", card.choices[1], Modifier.weight(1f))
+        BalanceChoice("B", card.choices[1], Modifier.weight(1f), selected = ui.chosen == 1)
     }
     if (ui.revealed) {
         Spacer(Modifier.height(18.dp))
@@ -265,12 +265,13 @@ private fun BalanceBody(ui: TalkUiState) {
 }
 
 @Composable
-private fun BalanceChoice(letter: String, text: String, modifier: Modifier = Modifier) {
+private fun BalanceChoice(letter: String, text: String, modifier: Modifier = Modifier, selected: Boolean = false) {
+    // 음성으로 고른 쪽은 해 색으로 표시한다.
     Column(
         modifier
             .fillMaxHeight()
-            .background(SideColors.Panel, RoundedCornerShape(20.dp))
-            .hairline(RoundedCornerShape(20.dp), SideColors.LineStrong)
+            .background(if (selected) SideColors.FillSelected else SideColors.Panel, RoundedCornerShape(20.dp))
+            .hairline(RoundedCornerShape(20.dp), if (selected) SideColors.Sun else SideColors.LineStrong)
             .padding(horizontal = 22.dp, vertical = 18.dp),
     ) {
         Text(letter, style = SideType.Number.copy(fontSize = 20.sp), color = SideColors.Blush)
@@ -288,20 +289,25 @@ private fun QuizBody(ui: TalkUiState) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         card.choices.forEachIndexed { i, choice ->
             val correct = ui.revealed && i == card.answer
+            val picked = i == ui.chosen // 음성으로 고른 답
             Row(
                 Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-                    .background(if (correct) SideColors.FillSelected else SideColors.Panel, RoundedCornerShape(16.dp))
+                    .background(if (correct || picked) SideColors.FillSelected else SideColors.Panel, RoundedCornerShape(16.dp))
                     .hairline(RoundedCornerShape(16.dp), if (correct) SideColors.Sun else SideColors.LineStrong)
                     .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("${i + 1}", style = SideType.Number.copy(fontSize = 22.sp), color = if (correct) SideColors.Sun else SideColors.Blush, modifier = Modifier.width(32.dp))
                 Text(choice, style = SideType.Label.copy(fontSize = 20.sp), color = SideColors.Text)
-                if (correct) {
+                if (correct || picked) {
                     Spacer(Modifier.weight(1f))
-                    Text("정답", style = SideType.LabelSmall.copy(fontWeight = FontWeight.Bold), color = SideColors.Sun)
+                    Text(
+                        listOfNotNull("고른 답".takeIf { picked }, "정답".takeIf { correct }).joinToString(" · "),
+                        style = SideType.LabelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = SideColors.Sun,
+                    )
                 }
             }
         }

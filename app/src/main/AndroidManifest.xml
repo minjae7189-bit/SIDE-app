@@ -14,9 +14,9 @@
     <!-- NaviHelper SDK: 차량 현재 위치·목적지 읽기(NAVI_ROUTE), 경로·경유지 요청(NAVI_ROUTE_SEARCH) -->
     <uses-permission android:name="pleos.car.permission.NAVI_ROUTE" />
     <uses-permission android:name="pleos.car.permission.NAVI_ROUTE_SEARCH" />
-    <!-- 가 볼 만한 곳 추천: 현재 위치에서 가까운 문화시설을 찾는다. 대략 위치만으로도 동작한다. -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- 위치 권한(ACCESS_COARSE/FINE_LOCATION)은 선언하지 않는다. 에뮬레이터 실측: 선언하면 Pleos가 주행 중에
+         이 앱 패널 전체를 "주행 중에는 사용할 수 없습니다"로 막는다(distractionOptimized와 무관).
+         가 볼 만한 곳은 차량 내비(NaviHelper)의 현재 위치를 쓴다. -->
 
     <!-- 대체 엔진(안드로이드 기본 TTS)이 Android 11+ 패키지 가시성 제한에서 엔진 서비스를 찾을 수 있도록 -->
     <queries>

@@ -1,5 +1,7 @@
 package app.side.ui
 
+import app.side.assessment.AssessmentUi
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,7 +32,17 @@ import app.side.vehicle.DriveState
  * 메뉴·질문 글자·카드는 띄우지 않고, 조작은 큰 버튼 하나뿐이다. 움직이는 효과는 없다.
  */
 @Composable
-fun DrivingScreen(ui: TalkUiState, driveState: DriveState, actions: TalkActions) {
+fun DrivingScreen(
+    ui: TalkUiState,
+    driveState: DriveState,
+    actions: TalkActions,
+    assessment: AssessmentUi = AssessmentUi(),
+    onStopAssessment: () -> Unit = {},
+) {
+    if (assessment.voiceOn) {
+        AssessmentDriving(assessment, onStopAssessment)
+        return
+    }
     val failed = ui.lastError != null && !ui.isRunning
     // 내용은 지평선 위쪽에만 둔다(큰 버튼이 지평선 선이나 해와 겹치지 않게).
     Column(
@@ -60,6 +72,38 @@ fun DrivingScreen(ui: TalkUiState, driveState: DriveState, actions: TalkActions)
             onClick = if (ui.isRunning) actions.pause else actions.play,
             modifier = Modifier.size(width = 340.dp, height = 96.dp),
             icon = if (ui.isRunning) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+            style = SideType.Button.copy(fontSize = 28.sp),
+            shape = RoundedCornerShape(48.dp),
+        )
+    }
+}
+
+/** 음성 진로 검사 중의 주행 화면: 진행 수와 상태, 멈추기 버튼 하나. 문항 글자는 띄우지 않는다. */
+@Composable
+private fun AssessmentDriving(assessment: AssessmentUi, onStop: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(HORIZON)
+            .padding(horizontal = 40.dp, vertical = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        VoiceOrb(active = true, size = 200.dp)
+        Spacer(Modifier.height(20.dp))
+        Text("진로 검사 ${assessment.answers.size} / ${assessment.total}", style = SideType.Title.copy(fontSize = 52.sp), color = SideColors.Text, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(12.dp))
+        Text(
+            assessment.voiceStatus.ifBlank { "음성으로 답해 주세요" },
+            style = SideType.Body.copy(fontSize = 22.sp),
+            color = SideColors.TextSoft,
+        )
+        Spacer(Modifier.height(36.dp))
+        SunButton(
+            text = "검사 멈추기",
+            onClick = onStop,
+            modifier = Modifier.size(width = 340.dp, height = 96.dp),
+            icon = Icons.Rounded.Pause,
             style = SideType.Button.copy(fontSize = 28.sp),
             shape = RoundedCornerShape(48.dp),
         )
@@ -106,7 +150,7 @@ fun ComingSoonScreen(tab: SideTab, onBack: () -> Unit) {
                 when (tab) {
                     SideTab.MISSION -> "가는 길에 가족이 함께 해 보는 진로 미션이 열릴 거예요"
                     SideTab.RECORD -> "함께 나눈 이야기와 관심사가 여기에 쌓일 거예요"
-                    else -> "음성 속도, 아이 나이 같은 설정을 고를 수 있게 할 거예요"
+                    else -> ""
                 },
                 style = SideType.Body,
                 color = SideColors.TextSoft,

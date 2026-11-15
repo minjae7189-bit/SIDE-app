@@ -1,5 +1,8 @@
 package app.side.ui
 
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -99,8 +102,22 @@ object SideType {
     )
 }
 
+/**
+ * 앱 전체 글자 배율. 차 안에서 조금 떨어져 읽어도 잘 보이도록 모든 sp 글자를 같은 비율로 키운다
+ * (화면마다 따로 정한 글자 크기를 하나하나 고치지 않고 한 곳에서 조정한다). 시스템 글자 크기 설정과 곱해진다.
+ */
+const val SIDE_FONT_SCALE = 1.15f
+
 @Composable
 fun SideTheme(content: @Composable () -> Unit) {
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(density.density, density.fontScale * SIDE_FONT_SCALE)) {
+        SideMaterialTheme(content)
+    }
+}
+
+@Composable
+private fun SideMaterialTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = darkColorScheme(
             primary = SideColors.Sun,

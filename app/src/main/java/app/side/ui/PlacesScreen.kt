@@ -1,5 +1,7 @@
 package app.side.ui
 
+import app.side.places.InterestSource
+import app.side.explore.Job
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,19 +51,25 @@ import app.side.talk.TalkUiState
 import java.time.LocalDate
 
 /** 오늘 들은 카드, 아이가 말한 답, 진로 검사 결과, 고른 관심사로 관심 근거를 모은다. 화면과 음성 안내가 같은 것을 쓴다. */
-fun buildProfile(talk: TalkUiState, assessment: AssessmentUi, chosen: Set<Theme>): InterestProfile {
+fun buildProfile(talk: TalkUiState, assessment: AssessmentUi, chosen: Set<Theme>, explored: List<Job> = emptyList()): InterestProfile {
     val cards = Deck.entries.flatMap { d -> SampleCards.deck(d).map { it.id to (it.topic to d.label) } }.toMap()
     val heard = talk.finishedCards.mapNotNull { id -> cards[id]?.let { (topic, deck) -> Triple(id, topic, deck) } }
     val content = assessment.content
     val interest = assessment.result?.domains?.get(Domain.INTEREST)
     val names = content?.factors?.get(Domain.INTEREST).orEmpty()
-    return ThemeLinks.profile(
+    val base = ThemeLinks.profile(
         chosen = chosen,
         heard = heard,
         testTop = interest?.top.orEmpty().mapNotNull { names.getOrNull(it)?.name },
         testSecond = interest?.second.orEmpty().mapNotNull { names.getOrNull(it)?.name },
         answers = talk.answers.values.toList(),
     )
+    // 3단계 직업 탐험: 살펴본 직업의 분야도 근거가 된다(단계를 더 할수록 추천이 구체적이 된다).
+    // 분야마다 한 번만 센다(같은 분야 직업을 여러 개 훑어봐도 직접 고른 관심사·검사 결과를 덮지 않게).
+    val fromExplore = explored.flatMap { job -> job.themes.map { it to job.name } }
+        .groupBy({ it.first }, { it.second })
+        .map { (theme, jobs) -> InterestSource(theme, 2, "직업 탐험에서 ${jobs.take(2).joinToString(", ") { "'$it'" }}${if (jobs.size > 2) " 등" else ""} 직업을 살펴봤어요.") }
+    return InterestProfile(base.sources + fromExplore)
 }
 
 /**
@@ -81,7 +89,7 @@ fun PlacesScreen(
         if (places.places.isEmpty()) emptyList() else Recommender.recommend(places.places, places.here, profile, today = LocalDate.now().dayOfWeek)
     }
     Column(Modifier.fillMaxSize()) {
-        ScreenHeader("가 볼 만한 곳", onBack) {
+        ScreenHeader("함께 가 볼 곳", onBack) {
             Text(
                 when (places.locationSource) {
                     LocationSource.VEHICLE -> "차량 위치 기준"
@@ -94,8 +102,9 @@ fun PlacesScreen(
             )
             Spacer(Modifier.width(14.dp))
             LineButton(
-                if (places.permissionGranted) "위치 다시 찾기" else "위치 사용 허용",
-                if (places.permissionGranted) actions.refreshLocation else onRequestPermission,
+                // 위치는 차량 내비에서 받는다(안드로이드 위치 권한은 쓰지 않음, AndroidManifest 참고).
+                "위치 다시 찾기",
+                actions.refreshLocation,
                 Modifier.height(52.dp),
                 icon = Icons.Rounded.Refresh,
             )
