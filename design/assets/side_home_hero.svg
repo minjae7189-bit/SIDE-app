@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 560" width="380" height="560">
+  <!-- 홈 그림: 새벽 길 위의 차, 뒷유리 너머 나란히 앉은 어른과 아이 -->
+  <path d="M38.4,60 a1.6,1.6 0 1,0 3.2,0 a1.6,1.6 0 1,0 -3.2,0 Z" fill="#FFFFFF" fill-opacity="0.55"/>
+  <path d="M94.8,120 a1.2,1.2 0 1,0 2.4,0 a1.2,1.2 0 1,0 -2.4,0 Z" fill="#FFFFFF" fill-opacity="0.55"/>
+  <path d="M148.6,40 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z" fill="#FFFFFF" fill-opacity="0.55"/>
+  <path d="M298.4,70 a1.6,1.6 0 1,0 3.2,0 a1.6,1.6 0 1,0 -3.2,0 Z" fill="#FFFFFF" fill-opacity="0.55"/>
+  <path d="M338.8,150 a1.2,1.2 0 1,0 2.4,0 a1.2,1.2 0 1,0 -2.4,0 Z" fill="#FFFFFF" fill-opacity="0.55"/>
+  <path d="M249.0,120 a1.0,1.0 0 1,0 2.0,0 a1.0,1.0 0 1,0 -2.0,0 Z" fill="#FFFFFF" fill-opacity="0.55"/>
+  <path d="M59.0,190 a1.0,1.0 0 1,0 2.0,0 a1.0,1.0 0 1,0 -2.0,0 Z" fill="#FFFFFF" fill-opacity="0.55"/>
+  <path d="M62,250 A128,128 0 0,1 318,250" fill="none" stroke="#FFE38A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.22"/>
+  <path d="M92,250 A98,98 0 0,1 288,250" fill="none" stroke="#FFE38A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.38"/>
+  <path d="M124,250 A66,66 0 0,1 256,250 Z" fill="#FFE38A"/>
+  <path d="M0,250 C40,200 80,214 118,190 C150,172 172,206 196,222 C222,204 250,178 290,196 C330,214 352,200 380,206 L380,250 Z" fill="#FFD3E0" fill-opacity="0.14"/>
+  <path d="M0,250 C30,232 66,238 96,226 C120,218 140,240 160,250 Z" fill="#2A2353" fill-opacity="0.9"/>
+  <path d="M232,250 C262,230 300,222 334,234 C356,242 368,236 380,240 L380,250 Z" fill="#2A2353" fill-opacity="0.9"/>
+  <path d="M0,250 h380 v310 h-380 Z" fill="#2A2353" fill-opacity="0.92"/>
+  <path d="M0,250 L380,250" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.4"/>
+  <path d="M184,250 L196,250 L340,560 L40,560 Z" fill="#FFFFFF" fill-opacity="0.05"/>
+  <path d="M184,250 L40,560" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.7"/>
+  <path d="M196,250 L340,560" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.7"/>
+  <path d="M190,250.2 L190,252.3" fill="none" stroke="#FFE38A" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.9"/>
+  <path d="M190,258.6 L190,265.7" fill="none" stroke="#FFE38A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.9"/>
+  <path d="M190,279.0 L190,291.2" fill="none" stroke="#FFE38A" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.9"/>
+  <path d="M190,311.4 L190,328.6" fill="none" stroke="#FFE38A" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.9"/>
+  <path d="M190,355.8 L190,378.1" fill="none" stroke="#FFE38A" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.9"/>
+  <path d="M72,522 a118,9 0 1,0 236,0 a118,9 0 1,0 -236,0 Z" fill="#000000" fill-opacity="0.3"/>
+  <path d="M105,494 h26 q5,0 5,5 v16 q0,5 -5,5 h-26 q-5,0 -5,-5 v-16 q0,-5 5,-5 Z" fill="#1E1840"/>
+  <path d="M249,494 h26 q5,0 5,5 v16 q0,5 -5,5 h-26 q-5,0 -5,-5 v-16 q0,-5 5,-5 Z" fill="#1E1840"/>
+  <path d="M120,420 L140,362 Q144,352 156,352 L224,352 Q236,352 240,362 L260,420 Z" fill="#4A3577" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.85"/>
+  <path d="M138,413 L152,371 Q154,364 162,364 L218,364 Q226,364 228,371 L242,413 Z" fill="#FFE38A" fill-opacity="0.28"/>
+  <path d="M153,384 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0 Z" fill="#2A2353"/>
+  <path d="M147,413 Q149,399 166,399 Q183,399 185,413 Z" fill="#2A2353"/>
+  <path d="M202.5,391 a9.5,9.5 0 1,0 19.0,0 a9.5,9.5 0 1,0 -19.0,0 Z" fill="#2A2353"/>
+  <path d="M197,413 Q199,403 212,403 Q225,403 227,413 Z" fill="#2A2353"/>
+  <path d="M96,420 L284,420 Q296,420 296,432 L296,486 Q296,498 284,498 L96,498 Q84,498 84,486 L84,432 Q84,420 96,420 Z" fill="#4A3577" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.85"/>
+  <path d="M101,434 h32 q5,0 5,5 v3 q0,5 -5,5 h-32 q-5,0 -5,-5 v-3 q0,-5 5,-5 Z" fill="#FF8E7A"/>
+  <path d="M247,434 h32 q5,0 5,5 v3 q0,5 -5,5 h-32 q-5,0 -5,-5 v-3 q0,-5 5,-5 Z" fill="#FF8E7A"/>
+  <path d="M168,456 h44 q4,0 4,4 v12 q0,4 -4,4 h-44 q-4,0 -4,-4 v-12 q0,-4 4,-4 Z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.6"/>
+</svg>

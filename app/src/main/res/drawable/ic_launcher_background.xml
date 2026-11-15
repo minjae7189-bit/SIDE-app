@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 앱 아이콘 배경: 노을 하늘과 지평선 아래 (design/assets/ic_launcher_background.svg와 같은 그림) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M0,0 h108 v108 h-108 Z"
+        android:fillColor="#FF352C66" />
+    <path
+        android:pathData="M8,57 a46,46 0 1,0 92,0 a46,46 0 1,0 -92,0 Z"
+        android:fillColor="#47FFB48A" />
+    <path
+        android:pathData="M24,57 a30,30 0 1,0 60,0 a30,30 0 1,0 -60,0 Z"
+        android:fillColor="#38FFB48A" />
+    <path
+        android:pathData="M0,57 h108 v51 h-108 Z"
+        android:fillColor="#FF2A2353" />
+</vector>

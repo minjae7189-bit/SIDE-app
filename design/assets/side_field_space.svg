@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- 우주·항공 -->
+  <path d="M5,26 a19,6 0 1,0 38,0 a19,6 0 1,0 -38,0 Z" fill="none" stroke="#FFE38A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M15,24 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0 Z" fill="#2B2370" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M36.2,9 a1.8,1.8 0 1,0 3.6,0 a1.8,1.8 0 1,0 -3.6,0 Z" fill="#FFE38A"/>
+  <path d="M7.8,12 a1.2,1.2 0 1,0 2.4,0 a1.2,1.2 0 1,0 -2.4,0 Z" fill="#FFFFFF"/>
+</svg>

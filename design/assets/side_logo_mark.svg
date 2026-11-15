@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+  <!-- SIDE 로고 표식: 지평선 위로 떠오르는 해와 나란히 뻗은 두 줄의 길 -->
+  <path d="M21.0,52.0 A27.0,27.0 0 0,1 75.0,52.0" fill="none" stroke="#FFE38A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.55"/>
+  <path d="M30.0,52.0 A18.0,18.0 0 0,1 66.0,52.0 Z" fill="#FFE38A"/>
+  <path d="M12.0,52.0 L84.0,52.0" fill="none" stroke="#FFFFFF" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M45.0,52.0 L22.0,90.0" fill="none" stroke="#FFFFFF" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M51.0,52.0 L74.0,90.0" fill="none" stroke="#FFFFFF" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M48.0,59.0 L48.0,64.0" fill="none" stroke="#FFE38A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M48.0,71.0 L48.0,86.0" fill="none" stroke="#FFE38A" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

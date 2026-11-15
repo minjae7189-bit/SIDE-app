@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SIDE 로고 표식: 지평선 위로 떠오르는 해와 나란히 뻗은 두 줄의 길 (design/assets/side_logo_mark.svg와 같은 그림) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <path
+        android:pathData="M21.0,52.0 A27.0,27.0 0 0,1 75.0,52.0"
+        android:strokeColor="#8CFFE38A"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M30.0,52.0 A18.0,18.0 0 0,1 66.0,52.0 Z"
+        android:fillColor="#FFFFE38A" />
+    <path
+        android:pathData="M12.0,52.0 L84.0,52.0"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="3.0"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M45.0,52.0 L22.0,90.0"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="4.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M51.0,52.0 L74.0,90.0"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="4.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M48.0,59.0 L48.0,64.0"
+        android:strokeColor="#FFFFE38A"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M48.0,71.0 L48.0,86.0"
+        android:strokeColor="#FFFFE38A"
+        android:strokeWidth="3.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

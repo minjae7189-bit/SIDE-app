@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <!-- 앱 아이콘 미리보기(배경+전경) -->
+  <path d="M0,0 h108 v108 h-108 Z" fill="#352C66"/>
+  <path d="M8,57 a46,46 0 1,0 92,0 a46,46 0 1,0 -92,0 Z" fill="#FFB48A" fill-opacity="0.28"/>
+  <path d="M24,57 a30,30 0 1,0 60,0 a30,30 0 1,0 -60,0 Z" fill="#FFB48A" fill-opacity="0.22"/>
+  <path d="M0,57 h108 v51 h-108 Z" fill="#2A2353"/>
+  <path d="M37.120000000000005,56.5 A16.88,16.88 0 0,1 70.88,56.5" fill="none" stroke="#FFE38A" stroke-width="1.38" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.55"/>
+  <path d="M42.75,56.5 A11.25,11.25 0 0,1 65.25,56.5 Z" fill="#FFE38A"/>
+  <path d="M31.5,56.5 L76.5,56.5" fill="none" stroke="#FFFFFF" stroke-width="1.88" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M52.12,56.5 L37.75,80.25" fill="none" stroke="#FFFFFF" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M55.88,56.5 L70.25,80.25" fill="none" stroke="#FFFFFF" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M54.0,60.88 L54.0,64.0" fill="none" stroke="#FFE38A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M54.0,68.38 L54.0,77.75" fill="none" stroke="#FFE38A" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
